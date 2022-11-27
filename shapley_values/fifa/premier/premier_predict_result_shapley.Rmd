@@ -1,17 +1,54 @@
+
+---
+title: "Shapley values"
+date: "03 Diciembre 2022"
+output:
+  html_notebook:
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    df_print: paged
+---
+
+
 ```{r, message=F}
 rm( list=ls() )  #remove all objects
 gc()       
 ```
 
+
+
+## Entendimiento sobre los valores Shapley
+
+### Dataset
+Los datos con los que se trabajará en este TP provienen de la 3° Encuesta Mundial de Salud Escolar (EMSE) provistos por el 
+Ministerio de Salud [link](http://datos.salud.gob.ar/dataset/base-de-datos-de-la-3-encuesta-mundial-de-salud-escolar-emse-con-resultados-nacionales-argentina) de la República Argentina. Esta encuesta trata sobre temas de salud y hábitos de las personas en la 
+escuela secundaria que pueden impactar en su salud. 
+
+
 ```{r, message=F}
+#library(ggplot2)
+#library(dplyr)
+#library(tidyverse)
 library(xgboost)
-install.packages("shapr")
+#install.packages("shapr")
 library(shapr)
 ```
+
+
+Comenzamos leyendo los datos y viendo su estructura, para esto utilizamos la función glimpse
 
 ```{r, message=F}
 
 premier <- read.csv("/Users/dfontenla/Maestria/2022C2/EEA/practica/repo/EEA-2022/TP2/fifa/Premier2017-2022 - CURADO.csv", encoding = "UTF-8")
+#glimpse(premier)
+
+```
+
+
+
+Separamos del dataset en train y test
+```{r, message=F}
 
 y_var <- "FTR"
 x_var <- c("HS",	"AS",	"HST",	"AST",	"HF",	"AF",	"HC",	"AC",	"HY",	"AY",	"HR",	"AR")
@@ -23,6 +60,7 @@ x_test <- as.matrix(premier[1:6, x_var])
 ```
 
 
+Realziamos la prediccion de quien gana el partido
 ```{r, message=F}
 
 # Fitting a basic xgboost model to the training data
@@ -33,6 +71,12 @@ model <- xgboost(
   verbose = FALSE
 )
 
+```
+
+
+Utilizamos el paquete de R para obtener los valores shapley
+
+```{r, message=F}
 # Prepare the data for explanation
 explainer <- shapr(x_train, model)
 #> The specified model provides feature classes that are NA. The classes of data are taken as the truth.
@@ -48,24 +92,17 @@ explanation <- explain(
   approach = "empirical",
   explainer = explainer,
   prediction_zero = p
-)
+)   
+
 
 ```
 
+Analizamos la explicacion de como se compone la prediccion de nuestros datos en tests
 
 ```{r, message=F}
-# Printing the Shapley values for the test data.
-# For more information about the interpretation of the values in the table, see ?shapr::explain.
-print(explanation$dt)
-#>      none     lstat         rm       dis      indus
-#> 1: 22.446 5.2632030 -1.2526613 0.2920444  4.5528644
-#> 2: 22.446 0.1671903 -0.7088405 0.9689007  0.3786871
-#> 3: 22.446 5.9888016  5.5450861 0.5660136 -1.4304350
-#> 4: 22.446 8.2142203  0.7507569 0.1893368  1.8298305
-#> 5: 22.446 0.5059890  5.6875106 0.8432240  2.2471152
-#> 6: 22.446 1.9929674 -3.6001959 0.8601984  3.1510530
 
-# Plot the resulting explanations for observations 1 and 6
+print(explanation$dt)
+
 plot(explanation, plot_phi0 = FALSE, index_x_test = c(1, 6))
 x_test
 y_test <- premier[1:6, y_var]
@@ -77,8 +114,21 @@ plot(explanation, plot_phi0 = FALSE)
 
 
 ```{r, message=F}
+   
+```
+
+
+```{r, message=F}
 
 ```
+
+```{r, message=F}
+
+
+
+```
+
+
 ```{r, message=F}
 
 ```
@@ -88,8 +138,11 @@ plot(explanation, plot_phi0 = FALSE)
 ```{r, message=F}
 
 ```
+```{r, message=F}
 
+```
 
+<!-- 
 
 # Use the Gaussian approach
 explanation_gaussian <- explain(
@@ -266,4 +319,4 @@ p0 <- mean(xy_train[,y_var])
 explanation <- explain(x_test, explainer, approach = "empirical", prediction_zero = p0)
 # Plot results
 plot(explanation)
-
+ -->

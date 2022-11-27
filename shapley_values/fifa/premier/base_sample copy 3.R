@@ -1,25 +1,18 @@
-```{r, message=F}
 rm( list=ls() )  #remove all objects
 gc()       
-
-```
-```{r, message=F}
 library(xgboost)
 install.packages("shapr")
 library(shapr)
-```
-```{r, message=F}
-fifa <- read.csv("/Users/dfontenla/Maestria/2022C2/EEA/practica/repo/EEA-2022/TP2/fifa/FIFA 2018 Statistics - NOTNA - NTARGET.csv", encoding = "UTF-8")
 
-y_var <- "Man.of.the.Match"
-x_var <- c("Goal.Scored", "Ball.Possession..", "Attempts", "On.Target", "Blocked", "Off.Target", "Corners", "Offsides", "Free.Kicks", "Saves")
+premier <- read.csv("/Users/dfontenla/Maestria/2022C2/EEA/practica/repo/EEA-2022/TP2/fifa/Premier2017-2022 - CURADO.csv", encoding = "UTF-8")
 
-x_train <- as.matrix(fifa[-1:-6, x_var])
-y_train <- fifa[-1:-6, y_var]
-x_test <- as.matrix(fifa[1:6, x_var])
+y_var <- "FTR"
+x_var <- c("HS",	"AS",	"HST",	"AST",	"HF",	"AF",	"HC",	"AC",	"HY",	"AY",	"HR",	"AR")
 
-```
-```{r, message=F}
+x_train <- as.matrix(premier[-1:-6, x_var])
+y_train <- premier[-1:-6, y_var]
+x_test <- as.matrix(premier[1:6, x_var])
+
 # Fitting a basic xgboost model to the training data
 model <- xgboost(
   data = x_train,
@@ -44,8 +37,7 @@ explanation <- explain(
   explainer = explainer,
   prediction_zero = p
 )
-```
-```{r, message=F}
+
 # Printing the Shapley values for the test data.
 # For more information about the interpretation of the values in the table, see ?shapr::explain.
 print(explanation$dt)
@@ -59,29 +51,10 @@ print(explanation$dt)
 
 # Plot the resulting explanations for observations 1 and 6
 plot(explanation, plot_phi0 = FALSE, index_x_test = c(1, 6))
-
-```
-```{r, message=F}
-
-```
-```{r, message=F}
-
-```
-```{r, message=F}
-
-```
-```{r, message=F}
-
-```
-```{r, message=F}
-
-```
-
-
-
-
-
-
+x_test
+y_test <- premier[1:6, y_var]
+y_test
+plot(explanation, plot_phi0 = FALSE)
 
 # Use the Gaussian approach
 explanation_gaussian <- explain(
