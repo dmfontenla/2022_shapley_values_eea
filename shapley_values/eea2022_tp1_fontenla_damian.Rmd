@@ -1,0 +1,61 @@
+---
+title: "TP 2: SHAP"
+author: "Damian Fontenla"
+date: "29 de Octubre de 2022"
+output:
+  html_notebook:
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    df_print: paged
+---
+
+## Diagnóstico y Evaluación de Modelos de Regresión Lineal
+
+### Dataset
+Los datos con los que se trabajará en este TP provienen de la 3° Encuesta Mundial de Salud Escolar (EMSE) provistos por el 
+Ministerio de Salud [link](http://datos.salud.gob.ar/dataset/base-de-datos-de-la-3-encuesta-mundial-de-salud-escolar-emse-con-resultados-nacionales-argentina) de la República Argentina. Esta encuesta trata sobre temas de salud y hábitos de las personas en la 
+escuela secundaria que pueden impactar en su salud. 
+
+
+```{r, warning=F, message=F}
+rm( list=ls() )  #remove all objects
+gc()       
+```
+
+
+```{r, warning=F, message=F}
+options(scipen=999)
+```
+
+```{r, warning=F, message=F}
+# Carga de librerías
+library(corrr)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(tidymodels)
+library(rsample)
+library(gridExtra)
+library(knitr)
+library(kableExtra)
+library(GGally)
+
+```
+
+Comenzamos leyendo los datos y viendo su estructura, para esto utilizamos la función glimpse
+```{r, warning=F, message=F}
+#Importamos los datasets con los que trabajaremos
+encuesta_salud_train = read.csv("/Users/dfontenla/Maestria/2022C2/EEA/practica/repo/EEA-2022/TP1/encuesta_salud_train.csv", encoding = "UTF-8") %>% mutate(id = 1:nrow(.)) 
+encuesta_salud_test = read.csv("/Users/dfontenla/Maestria/2022C2/EEA/practica/repo/EEA-2022/TP1/encuesta_salud_test.csv", encoding = "UTF-8") %>% mutate(id = 1:nrow(.)) 
+
+```
+
+```{r, warning=F, message=F}
+#encuesta_salud_train$nivel_educativo
+```
+
+```{r, warning=F, message=F}
+#Observamos la estructura y variables
+encuesta_salud_train %>% glimpse()
+```
