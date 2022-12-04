@@ -1,0 +1,171 @@
+---
+title: "TP 2: Valores Shap"
+author: "Damian Fontenla / Santiago Chas"
+date: "4 de Diciembre de 2022"
+output:
+  html_notebook:
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    df_print: paged
+---
+
+## Análisis y Evaluación de Valores Shap sobre un XGBoost
+
+```{r, warning=F, message=F}
+rm( list=ls() )  #remove all objects
+gc()       
+```
+
+```{r, warning=F, message=F}
+ library(dplyr)
+
+library(corrr)
+library(ggplot2)
+library(tidyverse)
+library(tidymodels)
+library(rsample)
+library(gridExtra)
+library(knitr)
+library(kableExtra)
+library(GGally)
+#install.packages("shapr")
+library(xgboost)
+library(shapr)
+
+```
+
+### Dataset
+Importamos el dataset sacado de kaggle, con información estadística de partidos disputados en el mundial 2018
+```{r, warning=F, message=F}
+fifa <- read.csv("/Users/dfontenla/Maestria/2022C2/EEA/damirepo/shapley_values/eea_tp2/R/FIFA 2018 Statistics - NOTNA - NTARGET + categorical prediction.csv", encoding = "UTF-8")
+```
+
+Analizamos el dataset, previamente realizamos un procesamiento manual de imputar valores nulos.
+```{r, warning=F, message=F}
+fifa %>% glimpse()
+```
+Rows: 128
+Columns: 28
+
+
+Ejecutamos ggpairs para analizar la correlación de los datos discriminandolos por la predicción que queremos hacer
+```{r, warning=F, message=F}
+numeric_var <- c("Goal.Scored", "Ball.Possession..", "Attempts", "On.Target", "Blocked", "Off.Target", "Corners", "Offsides", "Free.Kicks", "Saves", 
+"Passes", "Pass.Accuracy..","Distance.Covered..Kms.","Fouls.Committed","Yellow.Card","Yellow...Red","Red", "MOM_CAT")
+
+fifa_numeric = fifa %>% dplyr::select(numeric_var)
+
+fifa_numeric %>% ggpairs(aes(color=MOM_CAT)) + 
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=45, vjust=0.5), legend.position = "bottom")
+```
+
+
+Observamos numéricamente como se correlacionan los datos
+```{r, warning=F, message=F}
+
+fifa_numeric %>% 
+ correlate() %>% # convierte la matriz de corr en dataframe
+  shave() %>% # solo muestra información debajo de la diagonal principal
+  fashion() # acomoda los datos en forma tidy (por ej. redondeo de decimales)
+```
+
+
+Lo graficamos para tener las relaciones de una forma mas descriptiva
+```{r, warning=F, message=F}
+fifa_numeric %>% 
+ correlate() %>% 
+  network_plot(min_cor = 0.3)
+```
+
+
+## Predicción
+Seleccionamos los valores de nuestro dataset que utilizaremos en el modelo a generar, y separamos datos de train y test para entrenar nuestro modelo y 
+posteriormente ejecutar la predicción de los datos separados en testing
+
+```{r, warning=F, message=F}
+y_var <- "Man.of.the.Match"
+x_var <- c("Goal.Scored", "Ball.Possession..", "Attempts", "On.Target", "Blocked", "Off.Target", "Corners", "Offsides", "Free.Kicks", "Saves", 
+"Passes", "Pass.Accuracy..","Fouls.Committed")
+
+x_train <- as.matrix(fifa[-1:-10, x_var])
+y_train <- fifa[-1:-10, y_var]
+x_test <- as.matrix(fifa[1:10, x_var])
+```
+
+
+Para predecir utilizaremos xgboost, la idea es poder utilizar un modelo poco interpretable, no tenemos forma de poder saber como se desarma una predicción, solo
+según la importancia de cada feature, para llegar al valor obtenido.
+```{r, warning=F, message=F}
+# Fitting a basic xgboost model to the training data
+model <- xgboost(
+  data = x_train,
+  label = y_train,
+  nround = 20,
+  verbose = FALSE
+)
+```
+
+
+## Implementación Shap
+
+Utilizamos la libreria shap de R para poder explicar una predicción realizada por xgboost, tenemos el metodo shapr, que nos arroja el objeto explainer
+el cual utilizaremos para poder interpretar la prediccion
+```{r, warning=F, message=F}
+# Prepare the data for explanation
+explainer <- shapr(x_train, model)
+#> The specified model provides feature classes that are NA. The classes of data are taken as the truth.
+
+# Specifying the phi_0, i.e. the expected prediction without any features
+p <- mean(y_train)
+
+str(x_test)
+```
+
+Aplicamos la función explain para interpretar nuestro dataset de test que separamos del modelo
+```{r, warning=F, message=F}
+
+# Computing the actual Shapley values with kernelSHAP accounting for feature dependence using
+# the empirical (conditional) distribution approach with bandwidth parameter sigma = 0.1 (default)
+explanation <- explain(
+  x_test,
+  approach = "empirical",
+  explainer = explainer,
+  prediction_zero = p
+)
+```
+
+Desplegamos los resultados que nos arroja la explicación de Shap para la predicción
+```{r, warning=F, message=F}
+# Printing the Shapley values for the test data.
+# For more information about the interpretation of the values in the table, see ?shapr::explain.
+print(explanation$dt)
+#>      none     lstat         rm       dis      indus
+#> 1: 22.446 5.2632030 -1.2526613 0.2920444  4.5528644
+#> 2: 22.446 0.1671903 -0.7088405 0.9689007  0.3786871
+#> 3: 22.446 5.9888016  5.5450861 0.5660136 -1.4304350
+#> 4: 22.446 8.2142203  0.7507569 0.1893368  1.8298305
+#> 5: 22.446 0.5059890  5.6875106 0.8432240  2.2471152
+#> 6: 22.446 1.9929674 -3.6001959 0.8601984  3.1510530
+
+# Plot the resulting explanations for observations 1 and 6
+plot(explanation, plot_phi0 = FALSE, index_x_test = c(1, 6))
+
+```
+Observamos como valores tanto positivos como negativos, el signo nos brinda tambien interpretabilidad de como ese feature para la predicción buscada
+esta aportando o restando a nuestro resultado final
+
+
+Graficamos como se interpreta la predicción de nuestro modelo segun el metodo shap en nuestro dataset de test
+```{r, warning=F, message=F}
+print(explanation$dt)
+
+plot(explanation, plot_phi0 = FALSE, index_x_test = c(1, 6))
+x_test
+y_test <- fifa[1:10, y_var]
+y_test
+plot(explanation, plot_phi0 = FALSE)
+```
+
+

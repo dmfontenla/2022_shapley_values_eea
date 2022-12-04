@@ -28,7 +28,7 @@ escuela secundaria que pueden impactar en su salud.
 
 ```{r, message=F}
 #library(ggplot2)
-#library(dplyr)
+library(dplyr)
 #library(tidyverse)
 library(xgboost)
 #install.packages("shapr")
@@ -41,7 +41,7 @@ Comenzamos leyendo los datos y viendo su estructura, para esto utilizamos la fun
 ```{r, message=F}
 
 premier <- read.csv("/Users/dfontenla/Maestria/2022C2/EEA/practica/repo/EEA-2022/TP2/fifa/Premier2017-2022 - CURADO.csv", encoding = "UTF-8")
-#glimpse(premier)
+glimpse(premier)
 
 ```
 
