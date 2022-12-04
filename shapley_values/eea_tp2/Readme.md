@@ -1,9 +1,7 @@
 # EEA TP2 - Shapley values
 
 ## Grupo 
-#### - Damian Fontenla
-#### - Santiago Chas
-
+#### Damian Fontenla / Santiago Chas
 
 ### Objetivo
 
@@ -28,8 +26,11 @@ Python
 #### Treeshap/KernelShap 
 
 
-
-
 R
 #### Ejemplo base: https://github.com/dmfontenla/2022_shapley_values_eea/blob/main/shapley_values/eea_tp2/R/fifa_mom_shapley.Rmd
 #### Markdown: https://github.com/dmfontenla/2022_shapley_values_eea/blob/main/shapley_values/eea_tp2/R/TP%202_%20Valores%20Shap.html
+
+
+## Dataset
+El dataset consiste en estadisticas de partidos disputados en el mundial de futbol FIFA 2018
+https://www.kaggle.com/datasets/mathan/fifa-2018-match-statistics
