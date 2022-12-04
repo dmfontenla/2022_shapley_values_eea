@@ -23,7 +23,7 @@ Los scripts se realizaron el python por encontrar una mejor interpretabilidad y 
 Python
 
 #### Ejemplo base: https://github.com/dmfontenla/2022_shapley_values_eea/blob/main/shapley_values/eea_tp2/Python/shapley_intro.ipynb
-#### Treeshap/KernelShap 
+#### Treeshap/KernelShap : https://github.com/dmfontenla/2022_shapley_values_eea/blob/main/shapley_values/eea_tp2/Python/Tree_shap_fifa.ipynb
 
 
 R
